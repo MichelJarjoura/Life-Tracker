@@ -1,21 +1,56 @@
-<<<<<<< HEAD
-# liquidity_tracker
+Life Tracker App – Full-Stack Flutter & Laravel
 
-A new Flutter project.
+Life Tracker is a full-stack personal life management application designed to help users track, organize, and analyze different aspects of their daily lives in one place. The app provides a clean, intuitive interface built with Flutter, combined with a powerful Laravel backend to ensure secure data management and seamless performance.
 
-## Getting Started
+This application allows users to monitor habits, workouts, activities, finances, and personal goals, helping them stay productive, consistent, and self-aware. With real-time synchronization, secure authentication, and structured data tracking, Life Tracker transforms personal data into meaningful insights.
 
-This project is a starting point for a Flutter application.
+Key Features
 
-A few resources to get you started if this is your first Flutter project:
+Full-stack architecture using Flutter (Frontend) and Laravel (Backend)
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Secure authentication and API integration with Laravel Sanctum
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
-# Life-Tracker
-Life Tracker is a full-stack mobile application built with Flutter and Laravel to help me track expenses, workouts, and  my study progress. 
->>>>>>> dded49cb2b8fb71cb42f58b8d2acfc0d3f2e8842
+Track daily activities, habits, workouts, and personal metrics
+
+Interactive charts and statistics to visualize progress
+
+Clean and modern UI built with Flutter
+
+RESTful API architecture
+
+State management using GetX
+
+Persistent and secure data storage
+
+Tech Stack
+
+Frontend:
+
+Flutter
+
+Dart
+
+GetX (State Management)
+
+Backend:
+
+Laravel
+
+PHP
+
+RESTful API
+
+Laravel Sanctum Authentication
+
+Database:
+
+MySQL
+
+Purpose
+
+This project was built to improve personal productivity and self-management while demonstrating full-stack mobile development skills using Flutter and Laravel.
+
+Author
+
+Michel Jarjoura
+Computer Science Student & Full-Stack Developer
