@@ -5,7 +5,7 @@ import 'package:liquidity_tracker/controllers/navbar_controller.dart';
 import 'package:liquidity_tracker/routes/app_routes.dart';
 import 'package:liquidity_tracker/views/expenses_screen.dart';
 import 'package:liquidity_tracker/views/study_screen.dart';
-import 'package:liquidity_tracker/views/workout_screen.dart';
+import 'package:liquidity_tracker/views/workout/workout_screen.dart';
 
 class MainView extends StatelessWidget {
   const MainView({super.key});
