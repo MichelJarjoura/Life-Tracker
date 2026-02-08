@@ -40,7 +40,7 @@ class WorkoutScreen extends StatelessWidget {
               child: Obx(
                 () => IndexedStack(
                   index: controller.selectedTabIndex.value,
-                  children: const [CalendarTabWorkout(), StatsTab()],
+                  children: [InputTab(), StatsTab()],
                 ),
               ),
             ),
