@@ -99,6 +99,11 @@ class WorkoutController extends GetxController {
     );
   }
 
+  void removeWorkout() {
+    workoutDays.removeWhere((workout) => workout.date == selectedDate.value);
+    saveWorkouts();
+  }
+
   // Check if a date has a workout
   bool hasWorkout(DateTime date) {
     return workoutDays.any(
