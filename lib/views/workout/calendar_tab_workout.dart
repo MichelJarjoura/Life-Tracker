@@ -41,11 +41,11 @@ class InputTab extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   selectedDecoration: BoxDecoration(
-                    color: Colors.blue[700],
+                    color: Colors.purple[700],
                     shape: BoxShape.circle,
                   ),
                   todayDecoration: BoxDecoration(
-                    color: Colors.blue[300],
+                    color: Colors.purple[300],
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -108,7 +108,7 @@ class InputTab extends StatelessWidget {
                     onSelected: (selected) {
                       controller.toggleMuscle(muscle);
                     },
-                    selectedColor: Colors.blue[300],
+                    selectedColor: Colors.purple[300],
                     checkmarkColor: Colors.white,
                     labelStyle: TextStyle(
                       color: isSelected ? Colors.white : Colors.black87,
@@ -129,7 +129,7 @@ class InputTab extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () => controller.addWorkout(),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[700],
+                  backgroundColor: Colors.purple,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -156,12 +156,24 @@ class InputTab extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Workout on this date:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Text(
+                              'Workout on this date:',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            IconButton(
+                              onPressed: () {
+                                controller.removeWorkout();
+                              },
+                              icon: Icon(Icons.cancel),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 8),
                         Wrap(
