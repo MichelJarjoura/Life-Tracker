@@ -16,6 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.main,
       getPages: AppPages.pages,
+      theme: ThemeData.dark(),
     );
   }
 }

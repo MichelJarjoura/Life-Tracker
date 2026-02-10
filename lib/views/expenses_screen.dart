@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:liquidity_tracker/controllers/expences_controller.dart';
+import 'package:liquidity_tracker/controllers/transaction_controller.dart';
 import 'package:liquidity_tracker/models/transactions.dart';
 
 class ExpensesScreen extends StatelessWidget {
-  const ExpensesScreen({super.key});
+  ExpensesScreen({super.key});
+
+  final TransactionController controller = Get.find<TransactionController>();
 
   @override
   Widget build(BuildContext context) {
-    final TransactionController controller = Get.put(TransactionController());
-
     return Scaffold(
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -197,6 +197,10 @@ class ExpensesScreen extends StatelessWidget {
         return Container(
           height: 300,
           alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E1E1E),
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: const Text(
             'No expenses to display',
             style: TextStyle(color: Colors.white70),
@@ -205,16 +209,16 @@ class ExpensesScreen extends StatelessWidget {
       }
 
       return Container(
-        height: 300,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: const Color(0xFF1E1E1E),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(
+        child: Column(
           children: [
-            Expanded(
-              flex: 3,
+            // Pie Chart
+            SizedBox(
+              height: 220,
               child: PieChart(
                 PieChartData(
                   sectionsSpace: 2,
@@ -223,8 +227,9 @@ class ExpensesScreen extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 20),
-            Expanded(flex: 2, child: _buildLegend(expensesByCategory)),
+            const SizedBox(height: 20),
+            // Legend
+            _buildLegend(expensesByCategory),
           ],
         ),
       );
@@ -274,35 +279,30 @@ class ExpensesScreen extends StatelessWidget {
     ];
 
     int index = 0;
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Wrap(
+      spacing: 16,
+      runSpacing: 8,
       children: categoryData.entries.map((entry) {
         final color = colors[index % colors.length];
         index++;
 
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 4),
-          child: Row(
-            children: [
-              Container(
-                width: 16,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(4),
-                ),
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(4),
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  entry.key,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              entry.key,
+              style: const TextStyle(color: Colors.white, fontSize: 12),
+            ),
+          ],
         );
       }).toList(),
     );
@@ -430,10 +430,10 @@ class ExpensesScreen extends StatelessWidget {
         return Icons.restaurant;
       case 'transport':
         return Icons.directions_car;
-      case 'shopping':
-        return Icons.shopping_bag;
-      case 'housing':
-        return Icons.home;
+      case 'entertainment':
+        return Icons.games;
+      case 'coffee shops':
+        return Icons.coffee;
       case 'utilities':
         return Icons.bolt;
       case 'income':
@@ -469,9 +469,9 @@ class ExpensesScreen extends StatelessWidget {
 
     final categories = [
       'Food',
-      'Transport',
+      'Entertainment',
       'Shopping',
-      'Housing',
+      'coffee shops',
       'Utilities',
       'Income',
       'Other',

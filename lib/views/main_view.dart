@@ -61,11 +61,7 @@ class MainView extends StatelessWidget {
       body: Obx(
         () => IndexedStack(
           index: navBarController.selectedIndex.value,
-          children: [
-            const ExpensesScreen(),
-            WorkoutScreen(),
-            const StudyScreen(),
-          ],
+          children: [ExpensesScreen(), WorkoutScreen(), StudyScreen()],
         ),
       ),
       bottomNavigationBar: Obx(

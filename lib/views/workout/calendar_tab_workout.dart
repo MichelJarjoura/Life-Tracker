@@ -103,7 +103,10 @@ class InputTab extends StatelessWidget {
                     muscle,
                   );
                   return FilterChip(
-                    label: Text(muscle),
+                    label: Text(
+                      muscle,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(),
+                    ),
                     selected: isSelected,
                     onSelected: (selected) {
                       controller.toggleMuscle(muscle);
@@ -150,7 +153,9 @@ class InputTab extends StatelessWidget {
               );
               if (workout != null) {
                 return Card(
-                  color: Colors.green[50],
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.deepPurpleAccent[50]
+                      : Colors.green[50],
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -170,6 +175,7 @@ class InputTab extends StatelessWidget {
                             IconButton(
                               onPressed: () {
                                 controller.removeWorkout();
+                                controller.loadWorkouts();
                               },
                               icon: Icon(Icons.cancel),
                             ),
@@ -182,7 +188,11 @@ class InputTab extends StatelessWidget {
                           children: workout.musclesWorked.map((muscle) {
                             return Chip(
                               label: Text(muscle),
-                              backgroundColor: Colors.green[200],
+                              backgroundColor:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.deepPurpleAccent[200]
+                                  : Colors.green[200],
                               labelStyle: const TextStyle(fontSize: 12),
                             );
                           }).toList(),
