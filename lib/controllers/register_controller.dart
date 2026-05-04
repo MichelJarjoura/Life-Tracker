@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:dio/dio.dart';
 import 'package:liquidity_tracker/controllers/auth_controller.dart';
 import 'package:liquidity_tracker/routes/app_routes.dart';
 import 'package:liquidity_tracker/services/dio_services.dart';
@@ -22,37 +21,15 @@ class RegisterController extends GetxController {
 
   Future<void> submitRegister() async {
     if (formKey.currentState!.validate()) {
-      // Call API / Firebase / Backend later
-
+      isLoading.value = true;
       try {
-        isLoading.value = true;
-        final response = await dioServices.dio.post(
-          '/register',
-          data: {
-            'name': nameController.text,
-            'email': emailController.text,
-            'password': passwordController.text,
-            'password_confirmation': confirmPasswordController.text,
-          },
-        );
-        Get.snackbar(
-          "Success",
-          response.data['message'] ?? "Registration successful",
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        await Future.delayed(const Duration(seconds: 1));
 
-        authController.isLoggedin.value = true;
-
-        authController.saveUser(response.data['user'], response.data['token']);
-
+        await authController.saveSession({
+          'name': nameController.text,
+          'email': emailController.text,
+        }, 'demo_token_123');
         Get.offNamed(AppRoutes.main);
-      } on DioException catch (e) {
-        Get.snackbar(
-          "Error",
-          e.response?.data['message'] ?? 'Registration failed',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return;
       } finally {
         isLoading.value = false;
       }

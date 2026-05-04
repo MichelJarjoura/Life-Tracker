@@ -1,374 +1,377 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:liquidity_tracker/controllers/workout_controller.dart';
+import '../../constants/app_theme.dart';
+import '../../controllers/workout_controller.dart';
 
 class StatsTab extends StatelessWidget {
-  final WorkoutController controller = Get.find();
-
-  StatsTab({super.key});
+  const StatsTab({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final ctrl = Get.find<WorkoutController>();
+
     return Obx(() {
       final now = DateTime.now();
-      final totalWorkouts = controller.getTotalWorkoutsInMonth(
-        now.year,
-        now.month,
-      );
-      final missedDays = controller.getMissedDaysInMonth(now.year, now.month);
-      final consistency = controller.getConsistencyPercentage();
-      final streak = controller.getCurrentStreak();
-      final muscleFrequency = controller.getMuscleFrequencyThisMonth();
+      final total = ctrl.getTotalWorkoutsInMonth(now.year, now.month);
+      final missed = ctrl.getMissedDaysInMonth(now.year, now.month);
+      final pct = ctrl.getConsistencyPercentage();
+      final streak = ctrl.getCurrentStreak();
+      final muscleFreq = ctrl.getMuscleFrequencyThisMonth();
 
       return SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Month Overview
-              Text(
-                'Current Month Overview',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple[900],
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // Stats Cards
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      'Workouts',
-                      totalWorkouts.toString(),
-                      Icons.fitness_center,
-                      Colors.green,
-                    ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Month summary ──────────────────────────────────────────────
+            _SectionTitle('This Month'),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    label: 'Workouts',
+                    value: '$total',
+                    icon: Icons.fitness_center_rounded,
+                    color: AppColors.income,
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      'Missed Days',
-                      missedDays.toString(),
-                      Icons.event_busy,
-                      Colors.red,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _StatCard(
+                    label: 'Rest Days',
+                    value: '$missed',
+                    icon: Icons.event_busy_outlined,
+                    color: AppColors.expense,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: _StatCard(
+                    label: 'Consistency',
+                    value: '${pct.toStringAsFixed(0)}%',
+                    icon: Icons.trending_up_rounded,
+                    color: AppColors.warning,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _StatCard(
+                    label: 'Streak',
+                    value: '$streak ${streak == 1 ? 'day' : 'days'}',
+                    icon: Icons.local_fire_department_rounded,
+                    color: AppColors.accentLight,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+
+            // ── Consistency progress ───────────────────────────────────────
+            _SectionTitle('Monthly Consistency'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Progress',
+                        style: TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        '${pct.toStringAsFixed(1)}%',
+                        style: const TextStyle(
+                          color: AppColors.accentLight,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(AppRadius.pill),
+                    child: LinearProgressIndicator(
+                      value: (pct / 100).clamp(0.0, 1.0),
+                      minHeight: 8,
+                      backgroundColor: AppColors.border,
+                      valueColor: AlwaysStoppedAnimation(
+                        pct >= 80
+                            ? AppColors.income
+                            : pct >= 50
+                            ? AppColors.warning
+                            : AppColors.expense,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+            ),
+            const SizedBox(height: 24),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildStatCard(
-                      'Consistency',
-                      '${consistency.toStringAsFixed(1)}%',
-                      Icons.trending_up,
-                      Colors.orange,
+            // ── This week's muscles ────────────────────────────────────────
+            _SectionTitle("This Week's Muscles"),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: WorkoutController.availableMuscles.map((m) {
+                  final worked = ctrl.wasMuscleWorkedThisWeek(m);
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildStatCard(
-                      'Current Streak',
-                      '$streak ${streak == 1 ? 'day' : 'days'}',
-                      Icons.local_fire_department,
-                      Colors.purple,
+                    decoration: BoxDecoration(
+                      color: worked
+                          ? AppColors.income.withOpacity(0.1)
+                          : AppColors.surfaceAlt,
+                      borderRadius: BorderRadius.circular(AppRadius.pill),
+                      border: Border.all(
+                        color: worked
+                            ? AppColors.income.withOpacity(0.4)
+                            : AppColors.border,
+                      ),
                     ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Muscles Worked This Week
-              Text(
-                'This Week\'s Muscle Groups',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple[900],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: controller.availableMuscles.map((muscle) {
-                      final worked = controller.wasMuscleWorkedThisWeek(muscle);
-                      return Chip(
-                        label: Text(muscle),
-                        avatar: Icon(
-                          worked ? Icons.check_circle : Icons.cancel,
-                          size: 18,
-                          color: worked ? Colors.green : Colors.red,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          worked ? Icons.check_rounded : Icons.remove_rounded,
+                          size: 13,
+                          color: worked
+                              ? AppColors.income
+                              : AppColors.textMuted,
                         ),
-                        backgroundColor: worked
-                            ? Colors.green[50]
-                            : Colors.red[50],
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Muscle Frequency Chart
-              Text(
-                'Muscle Group Frequency (This Month)',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple[900],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: SizedBox(
-                    height: 250,
-                    child: BarChart(
-                      BarChartData(
-                        alignment: BarChartAlignment.spaceAround,
-                        maxY:
-                            (muscleFrequency.values.isEmpty
-                                    ? 10
-                                    : muscleFrequency.values.reduce(
-                                            (a, b) => a > b ? a : b,
-                                          ) +
-                                          2)
-                                .toDouble(),
-                        barTouchData: BarTouchData(
-                          enabled: true,
-                          touchTooltipData: BarTouchTooltipData(
-                            getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                              return BarTooltipItem(
-                                '${controller.availableMuscles[group.x]}\n${rod.toY.round()} times',
-                                const TextStyle(color: Colors.white),
-                              );
-                            },
+                        const SizedBox(width: 5),
+                        Text(
+                          m,
+                          style: TextStyle(
+                            color: worked
+                                ? AppColors.income
+                                : AppColors.textMuted,
+                            fontSize: 12,
+                            fontWeight: worked
+                                ? FontWeight.w600
+                                : FontWeight.w400,
                           ),
                         ),
-                        titlesData: FlTitlesData(
-                          show: true,
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              getTitlesWidget: (value, meta) {
-                                if (value.toInt() >=
-                                    controller.availableMuscles.length) {
-                                  return const Text('');
-                                }
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 8.0),
-                                  child: Text(
-                                    controller.availableMuscles[value.toInt()]
-                                        .substring(0, 3),
-                                    style: const TextStyle(fontSize: 10),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          leftTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 30,
-                              getTitlesWidget: (value, meta) {
-                                return Text(
-                                  value.toInt().toString(),
-                                  style: const TextStyle(fontSize: 10),
-                                );
-                              },
-                            ),
-                          ),
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            // ── Muscle frequency chart ─────────────────────────────────────
+            _SectionTitle('Muscle Frequency (This Month)'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 20, 20, 8),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppRadius.lg),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: SizedBox(
+                height: 200,
+                child: BarChart(
+                  BarChartData(
+                    alignment: BarChartAlignment.spaceAround,
+                    maxY:
+                        (muscleFreq.values.isEmpty
+                                ? 5
+                                : muscleFreq.values.reduce(
+                                        (a, b) => a > b ? a : b,
+                                      ) +
+                                      2)
+                            .toDouble(),
+                    barTouchData: BarTouchData(
+                      touchTooltipData: BarTouchTooltipData(
+                        tooltipBorderRadius: BorderRadius.circular(8),
+                        getTooltipItem: (group, _, rod, __) => BarTooltipItem(
+                          '${WorkoutController.availableMuscles[group.x]}\n'
+                          '${rod.toY.round()}×',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        borderData: FlBorderData(show: false),
-                        barGroups: List.generate(
-                          controller.availableMuscles.length,
-                          (index) => BarChartGroupData(
-                            x: index,
-                            barRods: [
-                              BarChartRodData(
-                                toY:
-                                    muscleFrequency[controller
-                                            .availableMuscles[index]]!
-                                        .toDouble(),
-                                color: Colors.purple[700],
-                                width: 20,
-                                borderRadius: const BorderRadius.vertical(
-                                  top: Radius.circular(4),
+                      ),
+                    ),
+                    titlesData: FlTitlesData(
+                      show: true,
+                      bottomTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          getTitlesWidget: (v, _) {
+                            final idx = v.toInt();
+                            if (idx >=
+                                WorkoutController.availableMuscles.length) {
+                              return const SizedBox.shrink();
+                            }
+                            return Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                WorkoutController.availableMuscles[idx]
+                                    .substring(0, 3),
+                                style: const TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 10,
                                 ),
                               ),
-                            ],
+                            );
+                          },
+                        ),
+                      ),
+                      leftTitles: AxisTitles(
+                        sideTitles: SideTitles(
+                          showTitles: true,
+                          reservedSize: 28,
+                          getTitlesWidget: (v, _) => Text(
+                            v.toInt().toString(),
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 10,
+                            ),
                           ),
                         ),
+                      ),
+                      topTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                      rightTitles: const AxisTitles(
+                        sideTitles: SideTitles(showTitles: false),
+                      ),
+                    ),
+                    borderData: FlBorderData(show: false),
+                    gridData: FlGridData(
+                      show: true,
+                      drawVerticalLine: false,
+                      getDrawingHorizontalLine: (_) =>
+                          const FlLine(color: AppColors.border, strokeWidth: 1),
+                    ),
+                    barGroups: List.generate(
+                      WorkoutController.availableMuscles.length,
+                      (i) => BarChartGroupData(
+                        x: i,
+                        barRods: [
+                          BarChartRodData(
+                            toY:
+                                (muscleFreq[WorkoutController
+                                            .availableMuscles[i]] ??
+                                        0)
+                                    .toDouble(),
+                            color: AppColors.accentLight,
+                            width: 18,
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(4),
+                            ),
+                            backDrawRodData: BackgroundBarChartRodData(
+                              show: true,
+                              toY:
+                                  (muscleFreq.values.isEmpty
+                                          ? 5
+                                          : muscleFreq.values.reduce(
+                                                  (a, b) => a > b ? a : b,
+                                                ) +
+                                                2)
+                                      .toDouble(),
+                              color: AppColors.surfaceAlt,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-
-              // Insights
-              // Text(
-              //   'Insights & Recommendations',
-              //   style: TextStyle(
-              //     fontSize: 18,
-              //     fontWeight: FontWeight.bold,
-              //     color: Colors.purple[900],
-              //   ),
-              //),
-              const SizedBox(height: 12),
-
-              // _buildInsightCard(
-              //   totalWorkouts,
-              //   missedDays,
-              //   consistency,
-              //   streak,
-              //   muscleFrequency,
-              // ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 24),
+          ],
         ),
       );
     });
   }
+}
 
-  Widget _buildStatCard(
-    String label,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return Card(
-      elevation: 3,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-              textAlign: TextAlign.center,
-            ),
-          ],
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: const TextStyle(
+      color: AppColors.textPrimary,
+      fontSize: 16,
+      fontWeight: FontWeight.w700,
+    ),
+  );
+}
+
+class _StatCard extends StatelessWidget {
+  const _StatCard({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+  final String label, value;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      border: Border.all(color: AppColors.border),
+    ),
+    child: Column(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            color: color,
+            fontSize: 20,
+            fontWeight: FontWeight.w800,
+          ),
         ),
-      ),
-    );
-  }
-
-  //   Widget _buildInsightCard(
-  //     int totalWorkouts,
-  //     int missedDays,
-  //     double consistency,
-  //     int streak,
-  //     Map<String, int> muscleFrequency,
-  //   ) {
-  //     List<String> insights = [];
-
-  //     // Consistency insights
-  //     if (consistency >= 80) {
-  //       insights.add('🔥 Excellent consistency! You\'re crushing it!');
-  //     } else if (consistency >= 60) {
-  //       insights.add('💪 Good consistency! Keep pushing forward.');
-  //     } else if (consistency >= 40) {
-  //       insights.add('⚠️ Try to maintain more consistency for better results.');
-  //     } else {
-  //       insights.add('📈 Focus on building a consistent routine.');
-  //     }
-
-  //     // Streak insights
-  //     if (streak >= 7) {
-  //       insights.add('🏆 Amazing streak! You\'re on fire!');
-  //     } else if (streak >= 3) {
-  //       insights.add('✨ Great streak going! Don\'t break it!');
-  //     } else if (streak == 0 && totalWorkouts > 0) {
-  //       insights.add('🎯 Start a new streak today!');
-  //     }
-
-  //     // Muscle balance insights
-  //     final maxFreq = muscleFrequency.values.isEmpty
-  //         ? 0
-  //         : muscleFrequency.values.reduce((a, b) => a > b ? a : b);
-  //     final minFreq = muscleFrequency.values.isEmpty
-  //         ? 0
-  //         : muscleFrequency.values.reduce((a, b) => a < b ? a : b);
-
-  //     if (maxFreq - minFreq > 3) {
-  //       final neglectedMuscles = muscleFrequency.entries
-  //           .where((e) => e.value < maxFreq - 2)
-  //           .map((e) => e.key)
-  //           .toList();
-  //       if (neglectedMuscles.isNotEmpty) {
-  //         insights.add('⚖️ Consider working: ${neglectedMuscles.join(', ')}');
-  //       }
-  //     } else if (totalWorkouts > 5) {
-  //       insights.add('✅ Great muscle group balance!');
-  //     }
-
-  //     // Workout frequency insights
-  //     if (totalWorkouts >= 20) {
-  //       insights.add('🌟 Outstanding! You\'re a gym warrior!');
-  //     } else if (totalWorkouts >= 12) {
-  //       insights.add('💯 Solid month of training!');
-  //     } else if (totalWorkouts < 8 && DateTime.now().day > 15) {
-  //       insights.add('💡 Try to increase your workout frequency.');
-  //     }
-
-  //     return Card(
-  //       color: Colors.blue[50],
-  //       elevation: 2,
-  //       child: Padding(
-  //         padding: const EdgeInsets.all(16.0),
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.start,
-  //           children: insights.map((insight) {
-  //             return Padding(
-  //               padding: const EdgeInsets.symmetric(vertical: 4.0),
-  //               child: Row(
-  //                 crossAxisAlignment: CrossAxisAlignment.start,
-  //                 children: [
-  //                   const SizedBox(width: 8),
-  //                   Expanded(
-  //                     child: Text(insight, style: const TextStyle(fontSize: 14)),
-  //                   ),
-  //                 ],
-  //               ),
-  //             );
-  //           }).toList(),
-  //         ),
-  //       ),
-  //     );
-  //   }
-  // }
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
+        ),
+      ],
+    ),
+  );
 }

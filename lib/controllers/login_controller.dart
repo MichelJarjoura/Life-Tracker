@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:liquidity_tracker/controllers/auth_controller.dart';
 import 'package:liquidity_tracker/routes/app_routes.dart';
@@ -22,35 +21,25 @@ class LoginController extends GetxController {
   Future<void> submitLogin() async {
     if (formKey.currentState!.validate()) {
       isLoading.value = true;
-      final email = emailController.text;
-      final password = passwordController.text;
-
       try {
-        final response = await dioServices.dio.post(
-          '/login',
-          data: {'email': email, 'password': password},
-        );
-        Get.snackbar(
-          "Success",
-          response.data['message'] ?? "Login successful",
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        // Simulate network delay
+        await Future.delayed(const Duration(seconds: 1));
 
-        authController.isLoggedin.value = true;
-
-        authController.saveUser(response.data['user'], response.data['token']);
-
-        Get.offNamed(AppRoutes.main);
-      } on DioException catch (e) {
-        emailController.text = '';
-        passwordController.text = '';
-
-        Get.snackbar(
-          "Error",
-          e.response?.data['message'] ?? 'Login failed',
-          snackPosition: SnackPosition.BOTTOM,
-        );
-        return;
+        // Hardcoded demo credentials
+        if (emailController.text == 'demo@example.com' &&
+            passwordController.text == 'password123') {
+          await authController.saveSession({
+            'name': 'Demo User',
+            'email': 'demo@example.com',
+          }, 'demo_token_123');
+          Get.offNamed(AppRoutes.main);
+        } else {
+          Get.snackbar(
+            'Error',
+            'Invalid email or password',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+        }
       } finally {
         isLoading.value = false;
       }

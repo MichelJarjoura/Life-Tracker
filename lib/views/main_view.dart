@@ -1,87 +1,182 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:liquidity_tracker/controllers/auth_controller.dart';
-import 'package:liquidity_tracker/controllers/navbar_controller.dart';
-import 'package:liquidity_tracker/routes/app_routes.dart';
-import 'package:liquidity_tracker/views/expenses_screen.dart';
 import 'package:liquidity_tracker/views/study_screen.dart';
-import 'package:liquidity_tracker/views/workout/workout_screen.dart';
+import '../constants/app_theme.dart';
+import '../controllers/auth_controller.dart';
+import '../controllers/navbar_controller.dart';
+import '../routes/app_routes.dart';
+import 'expenses_screen.dart';
+import 'workout/workout_screen.dart';
 
 class MainView extends StatelessWidget {
   const MainView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final navBarController = Get.find<NavBarController>();
-
-    final authController = Get.find<AuthController>();
+    final nav = Get.find<NavBarController>();
+    final auth = Get.find<AuthController>();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
-
-      appBar: AppBar(
-        toolbarHeight: 85,
-        leading: IconButton(
-          onPressed: () {},
-          icon: Icon(Icons.person_2_rounded, color: Colors.white),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.black, Colors.purple],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-        ),
-        actions: [
-          Obx(
-            () => authController.isLoggedin.value
-                ? Container()
-                : TextButton(
-                    onPressed: () => Get.toNamed(AppRoutes.login),
-                    style: TextButton.styleFrom(foregroundColor: Colors.white),
-                    child: const Text("Login"),
-                  ),
-          ),
-        ],
-        actionsPadding: EdgeInsets.symmetric(horizontal: 10),
-        title: Obx(() {
-          return Text(
-            navBarController.currentTitle,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          );
-        }),
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.bg,
+      appBar: _AppBar(nav: nav, auth: auth),
       body: Obx(
         () => IndexedStack(
-          index: navBarController.selectedIndex.value,
-          children: [ExpensesScreen(), WorkoutScreen(), StudyScreen()],
+          index: nav.selectedIndex.value,
+          children: const [ExpensesScreen(), WorkoutScreen(), StudyScreen()],
         ),
       ),
-      bottomNavigationBar: Obx(
-        () => BottomNavigationBar(
-          currentIndex: navBarController.selectedIndex.value,
-          onTap: (value) => navBarController.changeIndex(value),
-          items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.attach_money),
-              label: "Expenses",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.fitness_center),
-              label: "Workout",
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.menu_book),
-              label: "Study",
-            ),
-          ],
+      bottomNavigationBar: _BottomNav(nav: nav),
+    );
+  }
+}
+
+// ─── Top App Bar ──────────────────────────────────────────────────────────────
+
+class _AppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _AppBar({required this.nav, required this.auth});
+  final NavBarController nav;
+  final AuthController auth;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(64);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Row(
+            children: [
+              // Avatar / Profile icon
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.accentGlow,
+                  border: Border.all(color: AppColors.accent, width: 1.5),
+                ),
+                child: const Icon(
+                  Icons.person_outline_rounded,
+                  size: 18,
+                  color: AppColors.accentLight,
+                ),
+              ),
+              const SizedBox(width: 12),
+
+              // Title
+              Expanded(
+                child: Obx(
+                  () => Text(
+                    nav.currentTitle,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ),
+              ),
+
+              // Auth button
+              Obx(
+                () => auth.isLoggedIn.value
+                    ? IconButton(
+                        icon: const Icon(
+                          Icons.logout_rounded,
+                          size: 20,
+                          color: AppColors.textSecondary,
+                        ),
+                        onPressed: () => _confirmLogout(auth),
+                        tooltip: 'Logout',
+                      )
+                    : TextButton(
+                        onPressed: () => Get.toNamed(AppRoutes.login),
+                        child: const Text(
+                          'Sign in',
+                          style: TextStyle(
+                            color: AppColors.accentLight,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _confirmLogout(AuthController auth) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Sign out?'),
+        content: const Text(
+          'You will need to sign in again to sync your data.',
+        ),
+        actions: [
+          TextButton(onPressed: Get.back, child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () {
+              Get.back();
+              auth.logout();
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.expense),
+            child: const Text('Sign out'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Bottom Navigation ────────────────────────────────────────────────────────
+
+class _BottomNav extends StatelessWidget {
+  const _BottomNav({required this.nav});
+  final NavBarController nav;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.border)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Obx(
+          () => BottomNavigationBar(
+            currentIndex: nav.selectedIndex.value,
+            onTap: nav.changeIndex,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                activeIcon: Icon(Icons.account_balance_wallet_rounded),
+                label: 'Expenses',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.fitness_center_outlined),
+                activeIcon: Icon(Icons.fitness_center_rounded),
+                label: 'Workout',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.menu_book_outlined),
+                activeIcon: Icon(Icons.menu_book_rounded),
+                label: 'Study',
+              ),
+            ],
+          ),
         ),
       ),
     );

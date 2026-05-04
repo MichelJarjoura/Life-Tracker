@@ -1,138 +1,173 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:liquidity_tracker/controllers/transaction_controller.dart';
-import 'package:liquidity_tracker/models/transactions.dart';
+import '../constants/app_theme.dart';
+import '../controllers/transaction_controller.dart';
+import '../models/transactions.dart';
+import '../utils/app_date_utils.dart';
 
 class ExpensesScreen extends StatelessWidget {
-  ExpensesScreen({super.key});
-
-  final TransactionController controller = Get.find<TransactionController>();
+  const ExpensesScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Balance Cards
-            _buildBalanceSection(controller),
-            const SizedBox(height: 24),
+    final ctrl = Get.find<TransactionController>();
 
-            // Charts Section
-            const Text(
-              'Analytics',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      body: CustomScrollView(
+        slivers: [
+          // ── Balance hero ───────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Obx(
+              () => _BalanceHero(
+                balance: ctrl.balance,
+                income: ctrl.totalIncome,
+                expenses: ctrl.totalExpenses,
               ),
             ),
-            const SizedBox(height: 16),
-            _buildPieChart(controller),
-            const SizedBox(height: 24),
+          ),
 
-            // Recent Transactions
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Recent Transactions',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+          // ── Analytics ─────────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Obx(() {
+              final cats = ctrl.expensesByCategory;
+              return _SectionCard(
+                title: 'Expenses by category',
+                child: cats.isEmpty
+                    ? const _EmptyChart()
+                    : _DonutChart(data: cats),
+              );
+            }),
+          ),
+
+          // ── Transactions header ────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Recent transactions',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'See All',
-                    style: TextStyle(color: Color(0xFFBA68C8)),
+                  Obx(
+                    () => Text(
+                      '${ctrl.transactions.length} total',
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-            const SizedBox(height: 12),
-            _buildTransactionsList(controller),
-          ],
-        ),
+          ),
+
+          // ── Transaction list ───────────────────────────────────────────────
+          Obx(() {
+            final list = ctrl.recentTransactions;
+            if (list.isEmpty) {
+              return const SliverToBoxAdapter(child: _EmptyTransactions());
+            }
+            return SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (ctx, i) => _TransactionTile(
+                  transaction: list[i],
+                  onDelete: () => ctrl.deleteTransaction(list[i].id),
+                ),
+                childCount: list.length,
+              ),
+            );
+          }),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+        ],
       ),
+
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddTransactionDialog(context, controller),
-        backgroundColor: const Color(0xFF9C27B0),
-        icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text(
-          'Add Transaction',
-          style: TextStyle(color: Colors.white),
-        ),
+        onPressed: () => _showAddDialog(context, ctrl),
+        backgroundColor: AppColors.accent,
+        foregroundColor: Colors.white,
+        elevation: 4,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('Add', style: TextStyle(fontWeight: FontWeight.w600)),
       ),
     );
   }
+}
 
-  Widget _buildBalanceSection(TransactionController controller) {
-    return Obx(
-      () => Column(
+// ─── Balance Hero ─────────────────────────────────────────────────────────────
+
+class _BalanceHero extends StatelessWidget {
+  const _BalanceHero({
+    required this.balance,
+    required this.income,
+    required this.expenses,
+  });
+  final double balance, income, expenses;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF5B21B6), Color(0xFF7C3AED)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.accent.withOpacity(0.35),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
         children: [
-          // Main Balance Card
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF9C27B0), Color(0xFFBA68C8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF9C27B0).withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                const Text(
-                  'Total Balance',
-                  style: TextStyle(color: Colors.white70, fontSize: 16),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '\$${controller.balance.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
+          const Text(
+            'Total Balance',
+            style: TextStyle(color: Colors.white60, fontSize: 14),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '\$${balance.toStringAsFixed(2)}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 42,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -1.5,
+              height: 1,
             ),
           ),
-          const SizedBox(height: 16),
-
-          // Income and Expense Cards
+          const SizedBox(height: 24),
           Row(
             children: [
               Expanded(
-                child: _buildStatCard(
-                  'Income',
-                  controller.totalIncome,
-                  Icons.arrow_downward,
-                  Colors.green,
+                child: _MiniStat(
+                  label: 'Income',
+                  amount: income,
+                  icon: Icons.arrow_downward_rounded,
+                  color: AppColors.income,
                 ),
               ),
-              const SizedBox(width: 16),
+              Container(width: 1, height: 40, color: Colors.white12),
               Expanded(
-                child: _buildStatCard(
-                  'Expenses',
-                  controller.totalExpenses,
-                  Icons.arrow_upward,
-                  Colors.red,
+                child: _MiniStat(
+                  label: 'Expenses',
+                  amount: expenses,
+                  icon: Icons.arrow_upward_rounded,
+                  color: AppColors.expense,
                 ),
               ),
             ],
@@ -141,245 +176,232 @@ class ExpensesScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildStatCard(
-    String title,
-    double amount,
-    IconData icon,
-    Color color,
-  ) {
+class _MiniStat extends StatelessWidget {
+  const _MiniStat({
+    required this.label,
+    required this.amount,
+    required this.icon,
+    required this.color,
+  });
+  final String label;
+  final double amount;
+  final IconData icon;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(AppRadius.xs),
+          ),
+          child: Icon(icon, color: color, size: 14),
+        ),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white54, fontSize: 11),
+            ),
+            Text(
+              '\$${amount.toStringAsFixed(2)}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Section Card ─────────────────────────────────────────────────────────────
+
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({required this.title, required this.child});
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
           Text(
-            '\$${amount.toStringAsFixed(2)}',
+            title,
             style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
             ),
           ),
+          const SizedBox(height: 16),
+          child,
         ],
       ),
     );
   }
+}
 
-  Widget _buildPieChart(TransactionController controller) {
-    return Obx(() {
-      final expensesByCategory = controller.expensesByCategory;
+// ─── Donut Chart ──────────────────────────────────────────────────────────────
 
-      if (expensesByCategory.isEmpty) {
-        return Container(
-          height: 300,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: const Color(0xFF1E1E1E),
-            borderRadius: BorderRadius.circular(16),
+class _DonutChart extends StatelessWidget {
+  const _DonutChart({required this.data});
+  final Map<String, double> data;
+
+  static const _palette = [
+    Color(0xFF7C3AED),
+    Color(0xFF10B981),
+    Color(0xFFF59E0B),
+    Color(0xFF3B82F6),
+    Color(0xFFEF4444),
+    Color(0xFFEC4899),
+    Color(0xFF8B5CF6),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = data.entries.toList();
+    final total = data.values.fold(0.0, (s, v) => s + v);
+
+    return Row(
+      children: [
+        Expanded(
+          flex: 5,
+          child: SizedBox(
+            height: 180,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 2,
+                centerSpaceRadius: 46,
+                sections: List.generate(entries.length, (i) {
+                  final pct = entries[i].value / total * 100;
+                  return PieChartSectionData(
+                    value: entries[i].value,
+                    color: _palette[i % _palette.length],
+                    title: '${pct.toStringAsFixed(0)}%',
+                    titleStyle: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                    radius: 56,
+                  );
+                }),
+              ),
+            ),
           ),
-          child: const Text(
-            'No expenses to display',
-            style: TextStyle(color: Colors.white70),
-          ),
-        );
-      }
-
-      return Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(16),
         ),
-        child: Column(
-          children: [
-            // Pie Chart
-            SizedBox(
-              height: 220,
-              child: PieChart(
-                PieChartData(
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 50,
-                  sections: _generatePieSections(expensesByCategory),
+        const SizedBox(width: 16),
+        Expanded(
+          flex: 4,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: List.generate(
+              entries.length,
+              (i) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: _palette[i % _palette.length],
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        entries[i].key,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 12,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            // Legend
-            _buildLegend(expensesByCategory),
-          ],
+          ),
         ),
-      );
-    });
-  }
-
-  List<PieChartSectionData> _generatePieSections(
-    Map<String, double> categoryData,
-  ) {
-    final colors = [
-      const Color(0xFF9C27B0),
-      const Color(0xFFBA68C8),
-      const Color(0xFFCE93D8),
-      const Color(0xFFE1BEE7),
-      const Color(0xFFF3E5F5),
-    ];
-
-    int index = 0;
-    return categoryData.entries.map((entry) {
-      final color = colors[index % colors.length];
-      index++;
-
-      final total = categoryData.values.reduce((a, b) => a + b);
-      final percentage = (entry.value / total * 100).toStringAsFixed(1);
-
-      return PieChartSectionData(
-        color: color,
-        value: entry.value,
-        title: '$percentage%',
-        radius: 60,
-        titleStyle: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      );
-    }).toList();
-  }
-
-  Widget _buildLegend(Map<String, double> categoryData) {
-    final colors = [
-      const Color(0xFF9C27B0),
-      const Color(0xFFBA68C8),
-      const Color(0xFFCE93D8),
-      const Color(0xFFE1BEE7),
-      const Color(0xFFF3E5F5),
-    ];
-
-    int index = 0;
-    return Wrap(
-      spacing: 16,
-      runSpacing: 8,
-      children: categoryData.entries.map((entry) {
-        final color = colors[index % colors.length];
-        index++;
-
-        return Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(4),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Text(
-              entry.key,
-              style: const TextStyle(color: Colors.white, fontSize: 12),
-            ),
-          ],
-        );
-      }).toList(),
+      ],
     );
   }
+}
 
-  Widget _buildTransactionsList(TransactionController controller) {
-    return Obx(() {
-      final transactions = controller.recentTransactions;
+// ─── Transaction Tile ─────────────────────────────────────────────────────────
 
-      if (transactions.isEmpty) {
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(32.0),
-            child: Text(
-              'No transactions yet',
-              style: TextStyle(color: Colors.white70),
-            ),
-          ),
-        );
-      }
+class _TransactionTile extends StatelessWidget {
+  const _TransactionTile({required this.transaction, required this.onDelete});
+  final Transaction transaction;
+  final VoidCallback onDelete;
 
-      return ListView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: transactions.length,
-        itemBuilder: (context, index) {
-          final transaction = transactions[index];
-          return _buildTransactionCard(transaction, controller);
-        },
-      );
-    });
-  }
-
-  Widget _buildTransactionCard(
-    Transaction transaction,
-    TransactionController controller,
-  ) {
+  @override
+  Widget build(BuildContext context) {
     final isIncome = transaction.isIncome;
-    final color = isIncome ? Colors.green : Colors.red;
+    final color = isIncome ? AppColors.income : AppColors.expense;
 
     return Dismissible(
       key: Key(transaction.id),
       direction: DismissDirection.endToStart,
-      onDismissed: (_) => controller.deleteTransaction(transaction.id),
       background: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        decoration: BoxDecoration(
-          color: Colors.red,
-          borderRadius: BorderRadius.circular(16),
-        ),
         alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
+        padding: const EdgeInsets.only(right: 24),
+        color: AppColors.expense.withOpacity(0.15),
+        child: const Icon(
+          Icons.delete_outline_rounded,
+          color: AppColors.expense,
+        ),
       ),
+      confirmDismiss: (_) => _confirmDelete(context),
+      onDismissed: (_) => onDelete(),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: const Color(0xFF1E1E1E),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(12),
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(
-                _getCategoryIcon(transaction.category),
+                _categoryIcon(transaction.category),
                 color: color,
-                size: 24,
+                size: 20,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,36 +409,29 @@ class ExpensesScreen extends StatelessWidget {
                   Text(
                     transaction.title,
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
+                      color: AppColors.textPrimary,
+                      fontSize: 15,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
-                    transaction.category,
-                    style: const TextStyle(color: Colors.white60, fontSize: 14),
+                    '${transaction.category} · ${AppDateUtils.formatRelativeTime(transaction.date)}',
+                    style: const TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
             ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '${isIncome ? '+' : '-'}\$${transaction.amount.toStringAsFixed(2)}',
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  _formatDate(transaction.date),
-                  style: const TextStyle(color: Colors.white60, fontSize: 12),
-                ),
-              ],
+            Text(
+              '${isIncome ? '+' : '−'}\$${transaction.amount.toStringAsFixed(2)}',
+              style: TextStyle(
+                color: color,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ],
         ),
@@ -424,197 +439,281 @@ class ExpensesScreen extends StatelessWidget {
     );
   }
 
-  IconData _getCategoryIcon(String category) {
-    switch (category.toLowerCase()) {
+  Future<bool?> _confirmDelete(BuildContext context) => showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Delete transaction?'),
+      content: const Text('This action cannot be undone.'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, false),
+          child: const Text('Cancel'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(ctx, true),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.expense),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
+
+  IconData _categoryIcon(String cat) {
+    switch (cat.toLowerCase()) {
       case 'food':
-        return Icons.restaurant;
+        return Icons.restaurant_outlined;
       case 'transport':
-        return Icons.directions_car;
+        return Icons.directions_car_outlined;
       case 'entertainment':
-        return Icons.games;
+        return Icons.movie_outlined;
       case 'coffee shops':
-        return Icons.coffee;
+        return Icons.coffee_outlined;
       case 'utilities':
-        return Icons.bolt;
+        return Icons.bolt_outlined;
+      case 'shopping':
+        return Icons.shopping_bag_outlined;
       case 'income':
-        return Icons.attach_money;
+        return Icons.attach_money_rounded;
       default:
-        return Icons.category;
+        return Icons.category_outlined;
     }
   }
+}
 
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
+// ─── Empty States ─────────────────────────────────────────────────────────────
 
-    if (difference.inDays == 0) {
-      return 'Today';
-    } else if (difference.inDays == 1) {
-      return 'Yesterday';
-    } else if (difference.inDays < 7) {
-      return '${difference.inDays} days ago';
-    } else {
-      return '${date.day}/${date.month}/${date.year}';
-    }
-  }
+class _EmptyChart extends StatelessWidget {
+  const _EmptyChart();
 
-  void _showAddTransactionDialog(
-    BuildContext context,
-    TransactionController controller,
-  ) {
-    final titleController = TextEditingController();
-    final amountController = TextEditingController();
-    String selectedCategory = 'Food';
-    bool isIncome = false;
+  @override
+  Widget build(BuildContext context) => const SizedBox(
+    height: 100,
+    child: Center(
+      child: Text(
+        'No expenses yet',
+        style: TextStyle(color: AppColors.textMuted, fontSize: 14),
+      ),
+    ),
+  );
+}
 
-    final categories = [
-      'Food',
-      'Entertainment',
-      'Shopping',
-      'coffee shops',
-      'Utilities',
-      'Income',
-      'Other',
-    ];
+class _EmptyTransactions extends StatelessWidget {
+  const _EmptyTransactions();
 
-    showDialog(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          backgroundColor: const Color(0xFF1E1E1E),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
+    child: Column(
+      children: [
+        Icon(
+          Icons.receipt_long_outlined,
+          size: 52,
+          color: AppColors.textMuted.withOpacity(0.5),
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'No transactions yet',
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
-          title: const Text(
-            'Add Transaction',
-            style: TextStyle(color: Colors.white),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: titleController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Title',
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.white.withOpacity(0.3),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF9C27B0)),
-                    ),
-                  ),
+        ),
+        const SizedBox(height: 6),
+        const Text(
+          'Tap Add to record your first transaction',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+        ),
+      ],
+    ),
+  );
+}
+
+// ─── Add Transaction Dialog ───────────────────────────────────────────────────
+
+void _showAddDialog(BuildContext context, TransactionController ctrl) {
+  final titleCtrl = TextEditingController();
+  final amountCtrl = TextEditingController();
+  var category = 'Food';
+  var isIncome = false;
+
+  const categories = [
+    'Food',
+    'Entertainment',
+    'Shopping',
+    'Coffee shops',
+    'Utilities',
+    'Income',
+    'Other',
+  ];
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: AppColors.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+    ),
+    builder: (ctx) => Padding(
+      padding: EdgeInsets.only(
+        left: 24,
+        right: 24,
+        top: 24,
+        bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+      ),
+      child: StatefulBuilder(
+        builder: (ctx, setState) => Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Handle
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppColors.border,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: amountController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Amount',
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    prefixText: '\$ ',
-                    prefixStyle: const TextStyle(color: Colors.white),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.white.withOpacity(0.3),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF9C27B0)),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: selectedCategory,
-                  dropdownColor: const Color(0xFF1E1E1E),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'Category',
-                    labelStyle: const TextStyle(color: Colors.white70),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.white.withOpacity(0.3),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFF9C27B0)),
-                    ),
-                  ),
-                  items: categories.map((cat) {
-                    return DropdownMenuItem(value: cat, child: Text(cat));
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() {
-                        selectedCategory = value;
-                      });
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text(
-                    'Is Income?',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                  value: isIncome,
-                  activeColor: const Color(0xFF9C27B0),
-                  onChanged: (value) {
-                    setState(() {
-                      isIncome = value;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                'Cancel',
-                style: TextStyle(color: Colors.white70),
               ),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9C27B0),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+            const SizedBox(height: 20),
+
+            const Text(
+              'New transaction',
+              style: TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
               ),
-              onPressed: () {
-                if (titleController.text.isNotEmpty &&
-                    amountController.text.isNotEmpty) {
-                  final transaction = Transaction(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    title: titleController.text,
-                    amount: double.parse(amountController.text),
-                    date: DateTime.now(),
-                    category: selectedCategory,
-                    isIncome: isIncome,
-                  );
-                  controller.addTransaction(transaction);
-                  Navigator.pop(context);
-                }
+            ),
+            const SizedBox(height: 20),
+
+            // Income / Expense toggle
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.surfaceAlt,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: Row(
+                children: [
+                  _TypeToggle(
+                    label: 'Expense',
+                    selected: !isIncome,
+                    color: AppColors.expense,
+                    onTap: () => setState(() => isIncome = false),
+                  ),
+                  _TypeToggle(
+                    label: 'Income',
+                    selected: isIncome,
+                    color: AppColors.income,
+                    onTap: () => setState(() => isIncome = true),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              controller: titleCtrl,
+              style: const TextStyle(color: AppColors.textPrimary),
+              decoration: const InputDecoration(hintText: 'Title'),
+            ),
+            const SizedBox(height: 12),
+
+            TextField(
+              controller: amountCtrl,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: const TextStyle(color: AppColors.textPrimary),
+              decoration: const InputDecoration(
+                hintText: 'Amount',
+                prefixText: '\$ ',
+                prefixStyle: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            DropdownButtonFormField<String>(
+              value: category,
+              dropdownColor: AppColors.surfaceAlt,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 15,
+              ),
+              decoration: const InputDecoration(hintText: 'Category'),
+              items: categories
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) setState(() => category = v);
               },
-              child: const Text('Add', style: TextStyle(color: Colors.white)),
+            ),
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              onPressed: () {
+                final title = titleCtrl.text.trim();
+                final amount = double.tryParse(amountCtrl.text.trim());
+                if (title.isEmpty || amount == null || amount <= 0) return;
+
+                ctrl.addTransaction(
+                  Transaction(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    title: title,
+                    amount: amount,
+                    date: DateTime.now(),
+                    category: category,
+                    isIncome: isIncome,
+                  ),
+                );
+                Navigator.pop(ctx);
+              },
+              child: const Text('Save transaction'),
             ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
+class _TypeToggle extends StatelessWidget {
+  const _TypeToggle({
+    required this.label,
+    required this.selected,
+    required this.color,
+    required this.onTap,
+  });
+  final String label;
+  final bool selected;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: selected ? color.withOpacity(0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          border: selected ? Border.all(color: color, width: 1) : null,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: selected ? color : AppColors.textMuted,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    ),
+  );
 }

@@ -1,22 +1,20 @@
 import 'package:get/get.dart';
 
 class NavBarController extends GetxController {
-  var selectedIndex = 0.obs;
+  final selectedIndex = 0.obs;
 
-  void changeIndex(int index) {
-    selectedIndex.value = index;
-  }
+  void changeIndex(int index) => selectedIndex.value = index;
 
   String get currentTitle {
     switch (selectedIndex.value) {
       case 0:
-        return "Expenses tracker";
+        return 'Expenses';
       case 1:
-        return "Workout tracker";
+        return 'Workout';
       case 2:
-        return "Study tracker";
+        return 'Study';
       default:
-        return "Tracker";
+        return 'Tracker';
     }
   }
 }

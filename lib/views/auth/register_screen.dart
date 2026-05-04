@@ -1,163 +1,164 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:liquidity_tracker/controllers/register_controller.dart';
-import 'package:liquidity_tracker/routes/app_routes.dart';
+import '../../constants/app_theme.dart';
+import '../../controllers/register_controller.dart';
+import '../../routes/app_routes.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final regController = Get.find<RegisterController>();
+    final ctrl = Get.find<RegisterController>();
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: AppColors.bg,
       appBar: AppBar(
-        title: const Text("Create Account"),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        foregroundColor: Colors.black,
+        title: const Text('Create account'),
+        leading: BackButton(
+          color: AppColors.textSecondary,
+          onPressed: () => Get.offNamed(AppRoutes.login),
+        ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
           child: Form(
-            key: regController.formKey,
+            key: ctrl.formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 20),
+                const Text(
+                  'Fill in your details',
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 28),
 
-                // Name
+                _FieldLabel('Full name'),
+                const SizedBox(height: 6),
                 TextFormField(
-                  controller: regController.nameController,
-                  decoration: InputDecoration(
-                    labelText: "Full Name",
-                    prefixIcon: const Icon(Icons.person),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  controller: ctrl.nameController,
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: const InputDecoration(
+                    hintText: 'John Doe',
+                    prefixIcon: Icon(
+                      Icons.person_outline_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Name is required";
-                    }
-                    if (value.length < 3) {
-                      return "Name must be at least 3 characters";
-                    }
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Name is required';
+                    if (v.length < 3) return 'At least 3 characters';
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 20),
-
-                // Email
+                _FieldLabel('Email'),
+                const SizedBox(height: 6),
                 TextFormField(
-                  controller: regController.emailController,
+                  controller: ctrl.emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: "Email",
-                    prefixIcon: const Icon(Icons.email),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: const InputDecoration(
+                    hintText: 'you@example.com',
+                    prefixIcon: Icon(
+                      Icons.mail_outline_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Email is required";
-                    }
-                    if (!value.contains("@")) {
-                      return "Enter a valid email";
-                    }
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Email is required';
+                    if (!v.contains('@')) return 'Enter a valid email';
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 20),
-
-                // Password
+                _FieldLabel('Password'),
+                const SizedBox(height: 6),
                 TextFormField(
-                  controller: regController.passwordController,
+                  controller: ctrl.passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Password",
-                    prefixIcon: const Icon(Icons.lock),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: const InputDecoration(
+                    hintText: '••••••••',
+                    prefixIcon: Icon(
+                      Icons.lock_outline_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Password is required";
-                    }
-                    if (value.length < 6) {
-                      return "Password must be at least 6 characters";
-                    }
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Password is required';
+                    if (v.length < 6) return 'At least 6 characters';
                     return null;
                   },
                 ),
+                const SizedBox(height: 16),
 
-                const SizedBox(height: 20),
-
-                // Confirm Password
+                _FieldLabel('Confirm password'),
+                const SizedBox(height: 6),
                 TextFormField(
-                  controller: regController.confirmPasswordController,
+                  controller: ctrl.confirmPasswordController,
                   obscureText: true,
-                  decoration: InputDecoration(
-                    labelText: "Confirm Password",
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  style: const TextStyle(color: AppColors.textPrimary),
+                  decoration: const InputDecoration(
+                    hintText: '••••••••',
+                    prefixIcon: Icon(
+                      Icons.lock_outline_rounded,
+                      color: AppColors.textMuted,
+                      size: 20,
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Confirm your password";
-                    }
-                    if (value != regController.passwordController.text) {
-                      return "Passwords do not match";
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Please confirm';
+                    if (v != ctrl.passwordController.text) {
+                      return 'Passwords do not match';
                     }
                     return null;
                   },
                 ),
+                const SizedBox(height: 32),
 
-                const SizedBox(height: 30),
-
-                // Register Button
                 Obx(
                   () => ElevatedButton(
-                    onPressed: regController.isLoading.value
+                    onPressed: ctrl.isLoading.value
                         ? null
-                        : regController.submitRegister,
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: regController.isLoading.value
-                        ? CircularProgressIndicator()
-                        : const Text(
-                            "Create Account",
-                            style: TextStyle(fontSize: 18),
-                          ),
+                        : ctrl.submitRegister,
+                    child: ctrl.isLoading.value
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Create account'),
                   ),
                 ),
-
                 const SizedBox(height: 20),
 
-                // Back to login
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text("Already have an account? "),
+                    const Text(
+                      'Already have an account? ',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
                     GestureDetector(
                       onTap: () => Get.offNamed(AppRoutes.login),
                       child: const Text(
-                        "Login",
+                        'Sign in',
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: AppColors.accentLight,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),
@@ -170,4 +171,20 @@ class RegisterScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+class _FieldLabel extends StatelessWidget {
+  const _FieldLabel(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Text(
+    text,
+    style: const TextStyle(
+      color: AppColors.textSecondary,
+      fontSize: 13,
+      fontWeight: FontWeight.w600,
+      letterSpacing: 0.4,
+    ),
+  );
 }

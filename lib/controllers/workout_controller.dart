@@ -2,19 +2,16 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/workout_day.dart';
+import '../constants/storage_keys.dart';
 
 class WorkoutController extends GetxController {
-  var workoutDays = <WorkoutDay>[].obs;
-  var selectedDate = DateTime.now().obs;
-  var selectedMuscles = <String>[].obs;
+  // ─── State ──────────────────────────────────────────────────────────────────
+  final workoutDays = <WorkoutDay>[].obs;
+  final selectedDate = DateTime.now().obs;
+  final selectedMuscles = <String>[].obs;
+  final selectedTabIndex = 0.obs;
 
-  var selectedTabIndex = 0.obs;
-
-  void toggleTab(index) {
-    selectedTabIndex.value = index;
-  }
-
-  final List<String> availableMuscles = [
+  static const availableMuscles = [
     'Chest',
     'Back',
     'Shoulders',
@@ -23,208 +20,182 @@ class WorkoutController extends GetxController {
     'Legs',
     'Abs',
     'Cardio',
-    'forearms',
+    'Forearms',
   ];
 
-  @override
-  void onInit() {
-    super.onInit();
-    loadWorkouts();
-  }
+  // ─── Helpers ────────────────────────────────────────────────────────────────
+  /// Strip time component so all comparisons are date-only.
+  static DateTime _normalize(DateTime d) => DateTime(d.year, d.month, d.day);
 
-  // Load workouts from shared preferences
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  // ─── Persistence ────────────────────────────────────────────────────────────
   Future<void> loadWorkouts() async {
     final prefs = await SharedPreferences.getInstance();
-    final String? workoutsJson = prefs.getString('workouts');
-    if (workoutsJson != null) {
-      final List<dynamic> decoded = jsonDecode(workoutsJson);
-      workoutDays.value = decoded
-          .map((json) => WorkoutDay.fromJson(json))
+    final json = prefs.getString(StorageKeys.workouts);
+    if (json != null) {
+      final list = jsonDecode(json) as List<dynamic>;
+      workoutDays.value = list
+          .map((e) => WorkoutDay.fromJson(e as Map<String, dynamic>))
           .toList();
     }
   }
 
-  // Save workouts to shared preferences
-  Future<void> saveWorkouts() async {
+  Future<void> _saveWorkouts() async {
     final prefs = await SharedPreferences.getInstance();
-    final String encoded = jsonEncode(
-      workoutDays.map((w) => w.toJson()).toList(),
-    );
-    await prefs.setString('workouts', encoded);
+    final encoded = jsonEncode(workoutDays.map((w) => w.toJson()).toList());
+    await prefs.setString(StorageKeys.workouts, encoded);
   }
 
-  // Toggle muscle selection
+  // ─── Tab ────────────────────────────────────────────────────────────────────
+  void toggleTab(int index) => selectedTabIndex.value = index;
+
+  // ─── Muscles ────────────────────────────────────────────────────────────────
   void toggleMuscle(String muscle) {
-    if (selectedMuscles.contains(muscle)) {
-      selectedMuscles.remove(muscle);
-    } else {
-      selectedMuscles.add(muscle);
-    }
+    selectedMuscles.contains(muscle)
+        ? selectedMuscles.remove(muscle)
+        : selectedMuscles.add(muscle);
   }
 
-  // Add workout for selected date
+  // ─── CRUD ───────────────────────────────────────────────────────────────────
   void addWorkout() {
     if (selectedMuscles.isEmpty) {
       Get.snackbar(
-        'Error',
-        'Please select at least one muscle group',
+        'No muscles selected',
+        'Pick at least one muscle group to log.',
         snackPosition: SnackPosition.BOTTOM,
       );
       return;
     }
 
-    // Remove existing workout for this date if any
-    workoutDays.removeWhere(
-      (workout) =>
-          workout.date.year == selectedDate.value.year &&
-          workout.date.month == selectedDate.value.month &&
-          workout.date.day == selectedDate.value.day,
-    );
+    // Replace any existing entry for the same date
+    workoutDays.removeWhere((w) => _sameDay(w.date, selectedDate.value));
 
-    // Add new workout
     workoutDays.add(
       WorkoutDay(
         date: selectedDate.value,
-        musclesWorked: List.from(selectedMuscles),
+        musclesWorked: List<String>.from(selectedMuscles),
       ),
     );
 
-    saveWorkouts();
+    _saveWorkouts();
     selectedMuscles.clear();
 
     Get.snackbar(
-      'Success',
-      'Workout added successfully!',
+      'Workout saved',
+      'Your session has been logged.',
       snackPosition: SnackPosition.BOTTOM,
     );
   }
 
   void removeWorkout() {
-    workoutDays.removeWhere((workout) => workout.date == selectedDate.value);
-    saveWorkouts();
+    // ✅ Fixed: was comparing full DateTime objects (including time)
+    workoutDays.removeWhere((w) => _sameDay(w.date, selectedDate.value));
+    _saveWorkouts();
   }
 
-  // Check if a date has a workout
-  bool hasWorkout(DateTime date) {
-    return workoutDays.any(
-      (workout) =>
-          workout.date.year == date.year &&
-          workout.date.month == date.month &&
-          workout.date.day == date.day,
-    );
-  }
+  // ─── Queries ────────────────────────────────────────────────────────────────
+  bool hasWorkout(DateTime date) =>
+      workoutDays.any((w) => _sameDay(w.date, date));
 
-  // Get workout for a specific date
   WorkoutDay? getWorkout(DateTime date) {
     try {
-      return workoutDays.firstWhere(
-        (workout) =>
-            workout.date.year == date.year &&
-            workout.date.month == date.month &&
-            workout.date.day == date.day,
-      );
-    } catch (e) {
+      return workoutDays.firstWhere((w) => _sameDay(w.date, date));
+    } catch (_) {
       return null;
     }
   }
 
-  // Get workouts for a specific month
-  List<WorkoutDay> getWorkoutsForMonth(int year, int month) {
-    return workoutDays
-        .where(
-          (workout) => workout.date.year == year && workout.date.month == month,
-        )
-        .toList();
-  }
+  List<WorkoutDay> getWorkoutsForMonth(int year, int month) => workoutDays
+      .where((w) => w.date.year == year && w.date.month == month)
+      .toList();
 
-  // Get total workouts for a month
-  int getTotalWorkoutsInMonth(int year, int month) {
-    return getWorkoutsForMonth(year, month).length;
-  }
+  int getTotalWorkoutsInMonth(int year, int month) =>
+      getWorkoutsForMonth(year, month).length;
 
-  // Get missed days in a month (excluding future dates)
   int getMissedDaysInMonth(int year, int month) {
     final now = DateTime.now();
     final daysInMonth = DateTime(year, month + 1, 0).day;
-    final workoutDaysInMonth = getTotalWorkoutsInMonth(year, month);
+    final worked = getTotalWorkoutsInMonth(year, month);
 
-    // Calculate how many days have passed in the month
     int daysPassed;
     if (year == now.year && month == now.month) {
       daysPassed = now.day;
     } else if (DateTime(year, month).isAfter(now)) {
-      return 0; // Future month
+      return 0;
     } else {
       daysPassed = daysInMonth;
     }
 
-    return daysPassed - workoutDaysInMonth;
+    return (daysPassed - worked).clamp(0, daysPassed);
   }
 
-  // Check if muscle was worked this week
   bool wasMuscleWorkedThisWeek(String muscle) {
     final now = DateTime.now();
-    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final startOfWeek = _normalize(
+      now.subtract(Duration(days: now.weekday - 1)),
+    );
     final endOfWeek = startOfWeek.add(const Duration(days: 6));
 
-    return workoutDays.any((workout) {
-      final isInWeek =
-          workout.date.isAfter(startOfWeek.subtract(const Duration(days: 1))) &&
-          workout.date.isBefore(endOfWeek.add(const Duration(days: 1)));
-      return isInWeek && workout.musclesWorked.contains(muscle);
+    return workoutDays.any((w) {
+      final d = _normalize(w.date);
+      return !d.isBefore(startOfWeek) &&
+          !d.isAfter(endOfWeek) &&
+          w.musclesWorked.contains(muscle);
     });
   }
 
-  // Get muscle frequency in current month
   Map<String, int> getMuscleFrequencyThisMonth() {
     final now = DateTime.now();
-    final workoutsThisMonth = getWorkoutsForMonth(now.year, now.month);
+    final workouts = getWorkoutsForMonth(now.year, now.month);
+    final freq = {for (final m in availableMuscles) m: 0};
 
-    Map<String, int> frequency = {};
-    for (var muscle in availableMuscles) {
-      frequency[muscle] = 0;
-    }
-
-    for (var workout in workoutsThisMonth) {
-      for (var muscle in workout.musclesWorked) {
-        frequency[muscle] = (frequency[muscle] ?? 0) + 1;
+    for (final w in workouts) {
+      for (final m in w.musclesWorked) {
+        if (freq.containsKey(m)) freq[m] = freq[m]! + 1;
       }
     }
-
-    return frequency;
+    return freq;
   }
 
-  // Get workout consistency percentage for current month
   double getConsistencyPercentage() {
     final now = DateTime.now();
     final daysPassed = now.day;
-    final workouts = getTotalWorkoutsInMonth(now.year, now.month);
-
-    if (daysPassed == 0) return 0.0;
-    return (workouts / daysPassed) * 100;
+    if (daysPassed == 0) return 0;
+    return (getTotalWorkoutsInMonth(now.year, now.month) / daysPassed * 100)
+        .clamp(0, 100);
   }
 
-  // Get current streak
+  /// ✅ Fixed streak: normalise both sides of the comparison.
   int getCurrentStreak() {
     if (workoutDays.isEmpty) return 0;
 
-    final sortedWorkouts = workoutDays.toList()
+    final sorted = workoutDays.toList()
       ..sort((a, b) => b.date.compareTo(a.date));
 
     int streak = 0;
-    DateTime checkDate = DateTime.now();
+    DateTime checkDate = _normalize(DateTime.now());
 
-    for (var workout in sortedWorkouts) {
-      final dayDifference = checkDate.difference(workout.date).inDays;
+    for (final workout in sorted) {
+      final workoutDate = _normalize(workout.date);
+      final diff = checkDate.difference(workoutDate).inDays;
 
-      if (dayDifference <= 1) {
+      if (diff == 0 || diff == 1) {
         streak++;
-        checkDate = workout.date;
+        checkDate = workoutDate;
       } else {
         break;
       }
     }
 
     return streak;
+  }
+
+  // ─── Lifecycle ──────────────────────────────────────────────────────────────
+  @override
+  void onInit() {
+    super.onInit();
+    loadWorkouts();
   }
 }
