@@ -1,15 +1,14 @@
-import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../constants/storage_keys.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthController extends GetxController {
   final _storage = const FlutterSecureStorage();
+  final _supabase = Supabase.instance.client;
 
   final isLoggedIn = false.obs;
   final token = ''.obs;
   final user = <String, dynamic>{}.obs;
-
   final isReady = false.obs;
 
   @override
@@ -19,45 +18,30 @@ class AuthController extends GetxController {
   }
 
   Future<void> _restoreSession() async {
-    await _loadFromStorage();
-    isLoggedIn.value = token.value.isNotEmpty;
+    final session = _supabase.auth.currentSession;
+
+    if (session != null) {
+      user.value = {
+        'id': session.user.id,
+        'email': session.user.email ?? '',
+        'name': session.user.userMetadata?['name'] ?? '',
+      };
+      token.value = session.accessToken;
+      isLoggedIn.value = true;
+    }
   }
 
-  /// Persist user data and token after login / register.
   Future<void> saveSession(
     Map<String, dynamic> userData,
     String authToken,
   ) async {
     user.value = userData;
     token.value = authToken;
-
-    // ✅ Proper JSON encoding — not .toString()
-    await _storage.write(key: StorageKeys.token, value: authToken);
-    await _storage.write(key: StorageKeys.user, value: jsonEncode(userData));
-
     isLoggedIn.value = true;
   }
 
-  Future<void> _loadFromStorage() async {
-    final storedToken = await _storage.read(key: StorageKeys.token);
-    final storedUser = await _storage.read(key: StorageKeys.user);
-
-    if (storedToken != null && storedToken.isNotEmpty) {
-      token.value = storedToken;
-    }
-
-    if (storedUser != null && storedUser.isNotEmpty) {
-      try {
-        // ✅ Actually decode JSON back to Map
-        user.value = Map<String, dynamic>.from(jsonDecode(storedUser) as Map);
-      } catch (_) {
-        // Corrupted data — clear it
-        await _storage.deleteAll();
-      }
-    }
-  }
-
   Future<void> logout() async {
+    await _supabase.auth.signOut();
     token.value = '';
     user.value = {};
     isLoggedIn.value = false;

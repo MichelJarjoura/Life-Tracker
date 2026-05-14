@@ -1,35 +1,59 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:liquidity_tracker/controllers/auth_controller.dart';
-import 'package:liquidity_tracker/routes/app_routes.dart';
-import 'package:liquidity_tracker/services/dio_services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../controllers/auth_controller.dart';
+import '../routes/app_routes.dart';
 
 class RegisterController extends GetxController {
   final formKey = GlobalKey<FormState>();
-
   final authController = Get.find<AuthController>();
+  final _supabase = Supabase.instance.client;
 
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
-  final TextEditingController confirmPasswordController =
-      TextEditingController();
+  final nameController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
 
-  final DioServices dioServices = DioServices();
-
-  var isLoading = false.obs;
+  final isLoading = false.obs;
 
   Future<void> submitRegister() async {
     if (formKey.currentState!.validate()) {
       isLoading.value = true;
       try {
-        await Future.delayed(const Duration(seconds: 1));
+        final response = await _supabase.auth.signUp(
+          email: emailController.text.trim(),
+          password: passwordController.text,
+          data: {'name': nameController.text.trim()},
+        );
+
+        if (response.user == null) {
+          Get.snackbar(
+            'Error',
+            'Registration failed, please try again',
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return;
+        }
 
         await authController.saveSession({
-          'name': nameController.text,
-          'email': emailController.text,
-        }, 'demo_token_123');
+          'id': response.user!.id,
+          'email': response.user!.email ?? '',
+          'name': nameController.text.trim(),
+        }, response.session!.accessToken);
+
         Get.offNamed(AppRoutes.main);
+      } on AuthException catch (e) {
+        Get.snackbar(
+          'Registration Failed',
+          e.message,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'Something went wrong, please try again',
+          snackPosition: SnackPosition.BOTTOM,
+        );
       } finally {
         isLoading.value = false;
       }

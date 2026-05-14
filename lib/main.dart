@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'constants/app_theme.dart';
 import 'controllers/auth_controller.dart';
 import 'routes/app_pages.dart';
 import 'routes/app_routes.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Supabase.initialize(
+    url: 'https://jzjeruxlmuzvuczftntk.supabase.co', // your project URL
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6amVydXhsbXV6dnVjemZ0bnRrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3NDYwODIsImV4cCI6MjA5NDMyMjA4Mn0.99dpJz1juow5a6X9v53JKNl_INmhr9u6_442Rkh27SY', // your anon public key
+  );
 
   // ✅ AuthController registered permanently BEFORE any route loads,
   //    so Login/Register bindings can safely call Get.find<AuthController>().

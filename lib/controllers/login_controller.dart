@@ -1,45 +1,47 @@
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
-import 'package:liquidity_tracker/controllers/auth_controller.dart';
-import 'package:liquidity_tracker/routes/app_routes.dart';
-import 'package:liquidity_tracker/services/dio_services.dart';
+import 'package:get/get.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../controllers/auth_controller.dart';
+import '../routes/app_routes.dart';
 
 class LoginController extends GetxController {
-  // Form key
-  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
-
+  final formKey = GlobalKey<FormState>();
   final authController = Get.find<AuthController>();
+  final _supabase = Supabase.instance.client;
 
-  // Text controllers
-  final TextEditingController emailController = TextEditingController();
-  final TextEditingController passwordController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
 
-  final DioServices dioServices = DioServices();
-
-  var isLoading = false.obs;
+  final isLoading = false.obs;
 
   Future<void> submitLogin() async {
     if (formKey.currentState!.validate()) {
       isLoading.value = true;
       try {
-        // Simulate network delay
-        await Future.delayed(const Duration(seconds: 1));
+        final response = await _supabase.auth.signInWithPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text,
+        );
 
-        // Hardcoded demo credentials
-        if (emailController.text == 'demo@example.com' &&
-            passwordController.text == 'password123') {
-          await authController.saveSession({
-            'name': 'Demo User',
-            'email': 'demo@example.com',
-          }, 'demo_token_123');
-          Get.offNamed(AppRoutes.main);
-        } else {
-          Get.snackbar(
-            'Error',
-            'Invalid email or password',
-            snackPosition: SnackPosition.BOTTOM,
-          );
-        }
+        await authController.saveSession({
+          'id': response.user!.id,
+          'email': response.user!.email ?? '',
+          'name': response.user!.userMetadata?['name'] ?? '',
+        }, response.session!.accessToken);
+
+        Get.offNamed(AppRoutes.main);
+      } on AuthException catch (e) {
+        Get.snackbar(
+          'Login Failed',
+          e.message,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      } catch (e) {
+        Get.snackbar(
+          'Error',
+          'Something went wrong, please try again',
+          snackPosition: SnackPosition.BOTTOM,
+        );
       } finally {
         isLoading.value = false;
       }
@@ -48,7 +50,6 @@ class LoginController extends GetxController {
 
   @override
   void onClose() {
-    // Dispose controllers when controller is removed
     emailController.dispose();
     passwordController.dispose();
     super.onClose();

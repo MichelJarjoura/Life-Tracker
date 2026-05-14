@@ -40,6 +40,7 @@ dependencies:
   table_calendar: ^3.0.9
   dio: ^5.9.0
   shared_preferences: ^2.2.2
+  supabase_flutter: ^2.9.0
   
 
 dev_dependencies:
