@@ -36,11 +36,11 @@ dependencies:
   cupertino_icons: ^1.0.8
   get: ^4.7.3
   fl_chart: ^1.1.1
-  flutter_secure_storage: ^10.0.0
   table_calendar: ^3.0.9
   dio: ^5.9.0
   shared_preferences: ^2.2.2
   supabase_flutter: ^2.9.0
+  flutter_launcher_icons: ^0.14.3
   
 
 dev_dependencies:
@@ -95,3 +95,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/icon.png"  # your icon file
+  min_sdk_android: 21

@@ -29,7 +29,7 @@ class LoginController extends GetxController {
           'name': response.user!.userMetadata?['name'] ?? '',
         }, response.session!.accessToken);
 
-        Get.offNamed(AppRoutes.main);
+        Get.offAllNamed(AppRoutes.main);
       } on AuthException catch (e) {
         Get.snackbar(
           'Login Failed',

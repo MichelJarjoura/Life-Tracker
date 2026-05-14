@@ -1,9 +1,7 @@
 import 'package:get/get.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthController extends GetxController {
-  final _storage = const FlutterSecureStorage();
   final _supabase = Supabase.instance.client;
 
   final isLoggedIn = false.obs;
@@ -45,6 +43,5 @@ class AuthController extends GetxController {
     token.value = '';
     user.value = {};
     isLoggedIn.value = false;
-    await _storage.deleteAll();
   }
 }
