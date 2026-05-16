@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:liquidity_tracker/views/study_screen.dart';
+import 'package:liquidity_tracker/views/study/study_screen.dart';
 import '../constants/app_theme.dart';
 import '../controllers/auth_controller.dart';
 import '../controllers/navbar_controller.dart';
 import '../routes/app_routes.dart';
-import 'expenses_screen.dart';
+import 'expenses/expenses_screen.dart';
 import 'workout/workout_screen.dart';
 
 class MainView extends StatelessWidget {
@@ -54,20 +54,30 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
           child: Row(
             children: [
               // Avatar / Profile icon
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.accentGlow,
-                  border: Border.all(color: AppColors.accent, width: 1.5),
-                ),
-                child: const Icon(
-                  Icons.person_outline_rounded,
-                  size: 18,
-                  color: AppColors.accentLight,
+              GestureDetector(
+                onTap: () {
+                  if (auth.isLoggedIn.value) {
+                    Get.toNamed(AppRoutes.profile);
+                  } else {
+                    Get.toNamed(AppRoutes.login);
+                  }
+                },
+                child: Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: AppColors.accentGlow,
+                    border: Border.all(color: AppColors.accent, width: 1.5),
+                  ),
+                  child: const Icon(
+                    Icons.person_outline_rounded,
+                    size: 18,
+                    color: AppColors.accentLight,
+                  ),
                 ),
               ),
+
               const SizedBox(width: 12),
 
               // Title
@@ -85,18 +95,10 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
 
-              // Auth button
+              // Sign in (profile avatar handles account when logged in)
               Obx(
                 () => auth.isLoggedIn.value
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.logout_rounded,
-                          size: 20,
-                          color: AppColors.textSecondary,
-                        ),
-                        onPressed: () => _confirmLogout(auth),
-                        tooltip: 'Logout',
-                      )
+                    ? const SizedBox.shrink()
                     : TextButton(
                         onPressed: () => Get.toNamed(AppRoutes.login),
                         child: const Text(
@@ -111,28 +113,6 @@ class _AppBar extends StatelessWidget implements PreferredSizeWidget {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  void _confirmLogout(AuthController auth) {
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Sign out?'),
-        content: const Text(
-          'You will need to sign in again to sync your data.',
-        ),
-        actions: [
-          TextButton(onPressed: Get.back, child: const Text('Cancel')),
-          ElevatedButton(
-            onPressed: () {
-              Get.back();
-              auth.logout();
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.expense),
-            child: const Text('Sign out'),
-          ),
-        ],
       ),
     );
   }

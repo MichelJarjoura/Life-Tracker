@@ -3,6 +3,7 @@ import 'package:liquidity_tracker/bindings/main_binding.dart';
 import 'package:liquidity_tracker/bindings/login_binding.dart';
 import 'package:liquidity_tracker/bindings/register_binding.dart';
 import 'package:liquidity_tracker/views/main_view.dart';
+import 'package:liquidity_tracker/views/profile_view.dart';
 import '../views/auth/login_screen.dart';
 import '../views/auth/register_screen.dart';
 import 'app_routes.dart';
@@ -23,6 +24,10 @@ class AppPages {
       name: AppRoutes.main,
       page: () => MainView(),
       binding: MainBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.profile,
+      page: () => const ProfileScreen(),
     ),
   ];
 }

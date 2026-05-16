@@ -30,6 +30,7 @@ class LoginController extends GetxController {
         }, response.session!.accessToken);
 
         Get.offAllNamed(AppRoutes.main);
+        Get.toNamed(AppRoutes.profile);
       } on AuthException catch (e) {
         Get.snackbar(
           'Login Failed',

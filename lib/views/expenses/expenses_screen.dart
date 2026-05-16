@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../constants/app_theme.dart';
-import '../controllers/transaction_controller.dart';
-import '../models/transactions.dart';
-import '../utils/app_date_utils.dart';
+import '../../constants/app_theme.dart';
+import '../../controllers/transaction_controller.dart';
+import '../../models/transactions.dart';
+import '../../utils/app_date_utils.dart';
 
 class ExpensesScreen extends StatelessWidget {
   const ExpensesScreen({super.key});
@@ -283,70 +283,110 @@ class _DonutChart extends StatelessWidget {
     final entries = data.entries.toList();
     final total = data.values.fold(0.0, (s, v) => s + v);
 
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          flex: 5,
-          child: SizedBox(
-            height: 180,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 2,
-                centerSpaceRadius: 46,
-                sections: List.generate(entries.length, (i) {
-                  final pct = entries[i].value / total * 100;
-                  return PieChartSectionData(
-                    value: entries[i].value,
-                    color: _palette[i % _palette.length],
-                    title: '${pct.toStringAsFixed(0)}%',
-                    titleStyle: const TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                    radius: 56,
-                  );
-                }),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          flex: 4,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: List.generate(
-              entries.length,
-              (i) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: _palette[i % _palette.length],
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        entries[i].key,
-                        style: const TextStyle(
-                          color: AppColors.textSecondary,
-                          fontSize: 12,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+        SizedBox(
+          height: 200,
+          width: double.infinity,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              PieChart(
+                PieChartData(
+                  sectionsSpace: 3,
+                  centerSpaceRadius: 58,
+                  sections: List.generate(entries.length, (i) {
+                    return PieChartSectionData(
+                      value: entries[i].value,
+                      color: _palette[i % _palette.length],
+                      radius: 72,
+                      showTitle: false,
+                    );
+                  }),
                 ),
               ),
-            ),
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Total',
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '\$${total.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
+        const SizedBox(height: 20),
+        ...List.generate(entries.length, (i) {
+          final amount = entries[i].value;
+          final pct = total > 0 ? amount / total * 100 : 0.0;
+          final color = _palette[i % _palette.length];
+
+          return Padding(
+            padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    entries[i].key,
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '\$${amount.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    color: AppColors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: 40,
+                  child: Text(
+                    '${pct.toStringAsFixed(0)}%',
+                    textAlign: TextAlign.right,
+                    style: TextStyle(
+                      color: color,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
       ],
     );
   }

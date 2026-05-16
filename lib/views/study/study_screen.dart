@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../constants/app_theme.dart';
-import '../../../controllers/study_controller.dart';
-import '../../../models/study_session.dart';
-import '../../../utils/app_date_utils.dart';
+import '../../../../constants/app_theme.dart';
+import '../../../../controllers/study_controller.dart';
+import '../../../../models/study_session.dart';
+import '../../../../utils/app_date_utils.dart';
 
 class StudyScreen extends StatelessWidget {
   const StudyScreen({super.key});
