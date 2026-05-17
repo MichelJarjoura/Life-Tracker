@@ -283,7 +283,8 @@ class _DonutChart extends StatelessWidget {
     final entries = data.entries.toList();
     final total = data.values.fold(0.0, (s, v) => s + v);
 
-    return Column(
+    return SafeArea(
+    Column(
       children: [
         SizedBox(
           height: 200,
@@ -388,7 +389,8 @@ class _DonutChart extends StatelessWidget {
           );
         }),
       ],
-    );
+    ),
+    ),
   }
 }
 

@@ -126,7 +126,8 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return SafeArea(
+    Container(
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.border)),
@@ -159,6 +160,7 @@ class _BottomNav extends StatelessWidget {
           ),
         ),
       ),
+    ),
     );
   }
 }
