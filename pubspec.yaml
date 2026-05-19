@@ -95,8 +95,3 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
-flutter_launcher_icons:
-  android: true
-  ios: true
-  image_path: "assets/icons/icon.png"  # your icon file
-  min_sdk_android: 21
