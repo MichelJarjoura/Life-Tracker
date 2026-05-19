@@ -283,114 +283,139 @@ class _DonutChart extends StatelessWidget {
     final entries = data.entries.toList();
     final total = data.values.fold(0.0, (s, v) => s + v);
 
-    return SafeArea(
-    Column(
-      children: [
-        SizedBox(
-          height: 200,
-          width: double.infinity,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              PieChart(
-                PieChartData(
-                  sectionsSpace: 3,
-                  centerSpaceRadius: 58,
-                  sections: List.generate(entries.length, (i) {
-                    return PieChartSectionData(
-                      value: entries[i].value,
-                      color: _palette[i % _palette.length],
-                      radius: 72,
-                      showTitle: false,
-                    );
-                  }),
-                ),
-              ),
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    'Total',
-                    style: TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    '\$${total.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 20),
-        ...List.generate(entries.length, (i) {
-          final amount = entries[i].value;
-          final pct = total > 0 ? amount / total * 100 : 0.0;
-          final color = _palette[i % _palette.length];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Square chart box: fl_chart uses the shortest side — a wide short
+        // rectangle made the donut look clipped or uneven on phones.
+        final maxW = constraints.maxWidth;
+        final dim = (maxW * 0.88).clamp(200.0, 272.0);
+        // fl_chart: outer radius = centerSpaceRadius + section.radius (ring
+        // thickness). Both must fit inside half the box or the arc draws past
+        // the bounds and overlaps center text / legend.
+        final inset = 8.0;
+        final maxOuterRadius = dim / 2 - inset;
+        final centerHoleRadius = maxOuterRadius * 0.48;
+        final ringThickness = maxOuterRadius - centerHoleRadius;
 
-          return Padding(
-            padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
-            child: Row(
-              children: [
-                Container(
-                  width: 10,
-                  height: 10,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    entries[i].key,
-                    style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
+        return Column(
+          children: [
+            Center(
+              child: SizedBox(
+                width: dim,
+                height: dim,
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.hardEdge,
+                  children: [
+                    PieChart(
+                      PieChartData(
+                        sectionsSpace: 2,
+                        centerSpaceRadius: centerHoleRadius,
+                        sections: List.generate(entries.length, (i) {
+                          return PieChartSectionData(
+                            value: entries[i].value,
+                            color: _palette[i % _palette.length],
+                            radius: ringThickness,
+                            showTitle: false,
+                          );
+                        }),
+                      ),
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '\$${amount.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: AppColors.textSecondary,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                SizedBox(
-                  width: 40,
-                  child: Text(
-                    '${pct.toStringAsFixed(0)}%',
-                    textAlign: TextAlign.right,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Total',
+                          style: TextStyle(
+                            color: AppColors.textMuted,
+                            fontSize: (12 * dim / 240).clamp(11.0, 13.0),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: (2 * dim / 240).clamp(2.0, 4.0)),
+                        Text(
+                          '\$${total.toStringAsFixed(0)}',
+                          style: TextStyle(
+                            color: AppColors.textPrimary,
+                            fontSize: (22 * dim / 240).clamp(18.0, 24.0),
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.5,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ),
-              ],
+              ),
             ),
-          );
-        }),
-      ],
-    ),
-    ),
+            const SizedBox(height: 20),
+            ...List.generate(entries.length, (i) {
+              final amount = entries[i].value;
+              final pct = total > 0 ? amount / total * 100 : 0.0;
+              final color = _palette[i % _palette.length];
+
+              return Padding(
+                padding: EdgeInsets.only(top: i == 0 ? 0 : 10),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: color,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        entries[i].key,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 2,
+                        softWrap: true,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      flex: 2,
+                      child: Text(
+                        '\$${amount.toStringAsFixed(2)}',
+                        textAlign: TextAlign.end,
+                        style: const TextStyle(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      width: 44,
+                      child: Text(
+                        '${pct.toStringAsFixed(0)}%',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                          color: color,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -593,18 +618,21 @@ void _showAddDialog(BuildContext context, TransactionController ctrl) {
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     backgroundColor: AppColors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
     ),
-    builder: (ctx) => Padding(
-      padding: EdgeInsets.only(
-        left: 24,
-        right: 24,
-        top: 24,
-        bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-      ),
-      child: StatefulBuilder(
+    builder: (ctx) {
+      final mq = MediaQuery.of(ctx);
+      return Padding(
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: mq.viewInsets.bottom + mq.padding.bottom + 24,
+        ),
+        child: StatefulBuilder(
         builder: (ctx, setState) => Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -718,7 +746,8 @@ void _showAddDialog(BuildContext context, TransactionController ctrl) {
           ],
         ),
       ),
-    ),
+    );
+    },
   );
 }
 

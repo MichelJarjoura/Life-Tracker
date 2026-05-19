@@ -43,7 +43,7 @@ class TrackerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Liquidity Tracker',
+      title: 'Life Tracker',
       theme: AppTheme.dark,
       initialRoute: AppRoutes.main,
       getPages: AppPages.pages,
