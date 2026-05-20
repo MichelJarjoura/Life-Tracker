@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../../../constants/app_theme.dart';
-import '../../../../controllers/study_controller.dart';
-import '../../../../models/study_session.dart';
-import '../../../../utils/app_date_utils.dart';
+import 'package:liquidity_tracker/core/theme/app_theme.dart';
+import 'package:liquidity_tracker/features/study/controllers/study_controller.dart';
+import 'package:liquidity_tracker/features/study/models/study_session.dart';
+import 'package:liquidity_tracker/features/workout/utils/app_date_utils.dart';
 
 class StudyScreen extends StatelessWidget {
   const StudyScreen({super.key});

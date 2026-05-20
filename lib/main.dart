@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'constants/app_theme.dart';
-import 'controllers/auth_controller.dart';
-import 'routes/app_pages.dart';
-import 'routes/app_routes.dart';
+import 'package:liquidity_tracker/core/theme/app_theme.dart';
+import 'package:liquidity_tracker/features/auth/controllers/auth_controller.dart';
+import 'package:liquidity_tracker/core/routes/app_pages.dart';
+import 'package:liquidity_tracker/core/routes/app_routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

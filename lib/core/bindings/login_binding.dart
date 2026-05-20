@@ -1,5 +1,5 @@
 import 'package:get/get.dart';
-import 'package:liquidity_tracker/controllers/login_controller.dart';
+import 'package:liquidity_tracker/features/auth/controllers/login_controller.dart';
 
 class LoginBinding extends Bindings {
   @override

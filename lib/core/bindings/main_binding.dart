@@ -1,8 +1,8 @@
 import 'package:get/get.dart';
-import '../controllers/auth_controller.dart';
-import '../controllers/navbar_controller.dart';
-import '../controllers/transaction_controller.dart';
-import '../controllers/workout_controller.dart';
+import 'package:liquidity_tracker/features/auth/controllers/auth_controller.dart';
+import 'package:liquidity_tracker/core/controllers/navbar_controller.dart';
+import 'package:liquidity_tracker/features/expenses/controllers/transaction_controller.dart';
+import 'package:liquidity_tracker/features/workout/controllers/workout_controller.dart';
 
 class MainBinding extends Bindings {
   @override

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:liquidity_tracker/views/study/study_screen.dart';
-import '../constants/app_theme.dart';
-import '../controllers/auth_controller.dart';
-import '../controllers/navbar_controller.dart';
-import '../routes/app_routes.dart';
-import 'expenses/expenses_screen.dart';
-import 'workout/workout_screen.dart';
+import 'package:liquidity_tracker/core/theme/app_theme.dart';
+import 'package:liquidity_tracker/features/auth/controllers/auth_controller.dart';
+import 'package:liquidity_tracker/core/controllers/navbar_controller.dart';
+import 'package:liquidity_tracker/core/routes/app_routes.dart';
+import 'package:liquidity_tracker/features/expenses/screens/expenses_screen.dart';
+import 'package:liquidity_tracker/features/workout/presentation/screens/workout_screen.dart';
+import 'package:liquidity_tracker/features/study/screens/study_screen.dart';
 
 class MainView extends StatelessWidget {
   const MainView({super.key});

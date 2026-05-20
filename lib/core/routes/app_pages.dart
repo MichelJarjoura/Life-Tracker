@@ -1,11 +1,11 @@
 import 'package:get/get.dart';
-import 'package:liquidity_tracker/bindings/main_binding.dart';
-import 'package:liquidity_tracker/bindings/login_binding.dart';
-import 'package:liquidity_tracker/bindings/register_binding.dart';
-import 'package:liquidity_tracker/views/main_view.dart';
-import 'package:liquidity_tracker/views/profile_view.dart';
-import '../views/auth/login_screen.dart';
-import '../views/auth/register_screen.dart';
+import 'package:liquidity_tracker/core/bindings/main_binding.dart';
+import 'package:liquidity_tracker/core/bindings/login_binding.dart';
+import 'package:liquidity_tracker/core/bindings/register_binding.dart';
+import 'package:liquidity_tracker/core/screens/main_view.dart';
+import 'package:liquidity_tracker/features/auth/presentation/widgets/profile_view.dart';
+import 'package:liquidity_tracker/features/auth/presentation/screens/login_screen.dart';
+import 'package:liquidity_tracker/features/auth/presentation/screens/register_screen.dart';
 import 'app_routes.dart';
 
 class AppPages {

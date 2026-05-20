@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../../constants/app_theme.dart';
-import '../../controllers/workout_controller.dart';
+import 'package:liquidity_tracker/core/theme/app_theme.dart';
+import 'package:liquidity_tracker/features/workout/controllers/workout_controller.dart';
 
 class CalendarTab extends StatelessWidget {
   const CalendarTab({super.key});

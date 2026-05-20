@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../controllers/auth_controller.dart';
-import '../routes/app_routes.dart';
+import 'package:liquidity_tracker/core/routes/app_routes.dart';
 
 class LoginController extends GetxController {
   final formKey = GlobalKey<FormState>();

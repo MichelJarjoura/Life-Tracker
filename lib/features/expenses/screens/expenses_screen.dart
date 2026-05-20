@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../constants/app_theme.dart';
-import '../../controllers/transaction_controller.dart';
-import '../../models/transactions.dart';
-import '../../utils/app_date_utils.dart';
+import 'package:liquidity_tracker/core/theme/app_theme.dart';
+import 'package:liquidity_tracker/features/expenses/controllers/transaction_controller.dart';
+import 'package:liquidity_tracker/features/expenses/models/transactions.dart';
+import 'package:liquidity_tracker/features/workout/utils/app_date_utils.dart';
 
 class ExpensesScreen extends StatelessWidget {
   const ExpensesScreen({super.key});

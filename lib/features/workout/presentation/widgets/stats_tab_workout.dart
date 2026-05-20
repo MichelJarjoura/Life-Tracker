@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../constants/app_theme.dart';
-import '../../controllers/workout_controller.dart';
+import 'package:liquidity_tracker/core/theme/app_theme.dart';
+import 'package:liquidity_tracker/features/workout/controllers/workout_controller.dart';
 
 class StatsTab extends StatelessWidget {
   const StatsTab({super.key});

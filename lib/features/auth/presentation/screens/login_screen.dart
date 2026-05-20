@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../constants/app_theme.dart';
-import '../../controllers/login_controller.dart';
-import '../../routes/app_routes.dart';
+import 'package:liquidity_tracker/core/theme/app_theme.dart';
+import 'package:liquidity_tracker/features/auth/controllers/login_controller.dart';
+import 'package:liquidity_tracker/core/routes/app_routes.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});

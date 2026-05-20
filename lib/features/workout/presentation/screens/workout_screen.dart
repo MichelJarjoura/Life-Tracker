@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../constants/app_theme.dart';
-import '../../controllers/workout_controller.dart';
-import 'calendar_tab_workout.dart';
-import 'stats_tab_workout.dart';
+import 'package:liquidity_tracker/core/theme/app_theme.dart';
+import 'package:liquidity_tracker/features/workout/controllers/workout_controller.dart';
+import 'package:liquidity_tracker/features/workout/presentation/widgets/calendar_tab_workout.dart';
+import 'package:liquidity_tracker/features/workout/presentation/widgets/stats_tab_workout.dart';
 
 class WorkoutScreen extends StatelessWidget {
   const WorkoutScreen({super.key});

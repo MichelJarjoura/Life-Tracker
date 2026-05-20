@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../routes/app_routes.dart';
+import 'package:liquidity_tracker/core/routes/app_routes.dart';
 
 class RegisterController extends GetxController {
   final formKey = GlobalKey<FormState>();
