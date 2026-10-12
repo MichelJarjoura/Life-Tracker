@@ -69,10 +69,10 @@ The app is built with **Flutter**, uses **GetX** for state management, routing, 
 
 |                                       Expenses                                       |                                    Workouts                                     |                                   Study                                   |
 |:------------------------------------------------------------------------------------:|:-------------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|
-| <img src="lib/assets/screenshots/expenses1.jpg" width="220" alt="Expenses screen" /> | <img src="assets/screenshots/workout1.jpg" width="220" alt="Workouts screen" /> | <img src="assets/screenshots/study.jpg" width="220" alt="Study screen" /> |
-|  <img src="/assets/screenshots/expenses2.jpg" width="220" alt="Expenses screen" />   | <img src="assets/screenshots/workout2.jpg" width="220" alt="Workouts screen" /> |                                                                           |
-|                                                                                      | <img src="assets/screenshots/workout3.jpg" width="220" alt="Workouts screen" /> |                                                                           |
-|                                                                                      | <img src="assets/screenshots/workout4.jpg" width="220" alt="Workouts screen" /> |                                                                           |
+| <img src="lib/assets/screenshots/expenses1.jpg" width="220" alt="Expenses screen" /> | <img src="lib/assets/screenshots/workout1.jpg" width="220" alt="Workouts screen" /> | <img src="lib/assets/screenshots/study.jpg" width="220" alt="Study screen" /> |
+|  <img src="lib/assets/screenshots/expenses2.jpg" width="220" alt="Expenses screen" />   | <img src="lib/assets/screenshots/workout2.jpg" width="220" alt="Workouts screen" /> |                                                                           |
+|                                                                                      | <img src="lib/assets/screenshots/workout3.jpg" width="220" alt="Workouts screen" /> |                                                                           |
+|                                                                                      | <img src="lib/assets/screenshots/workout4.jpg" width="220" alt="Workouts screen" /> |                                                                           |
 
 
 
