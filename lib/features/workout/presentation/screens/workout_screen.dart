@@ -50,7 +50,6 @@ class WorkoutScreen extends StatelessWidget {
               child: Obx(
                 () => IndexedStack(
                   index: ctrl.selectedTabIndex.value,
-                  children: [ CalendarTab(), StatsTab()],
                 ),
               ),
             ),
